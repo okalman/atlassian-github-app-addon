@@ -25,7 +25,7 @@ begin
 rescue
   begin
     GITHUB_CLIENT_ID = ENV.fetch("GITHUB_CLIENT_ID")
-    GITHUB_CLIENT_SECRET =  ENV.fetch("GITHUB_CLIENT_SECRET")
+    GITHUB_CLIENT_SECRET = ENV.fetch("GITHUB_CLIENT_SECRET")
     GITHUB_APP_KEY = ENV.fetch("GITHUB_APP_KEY")
     GITHUB_APP_ID = ENV.fetch("GITHUB_APP_ID")
     GITHUB_APP_URL = ENV.fetch("GITHUB_APP_URL")
@@ -164,14 +164,19 @@ get '/create_branch' do
     redirect to('/')
   end
   app_token = get_app_token(session[:repo_name][:installation_id])
-  client = Octokit::Client.new(:access_token => app_token )
+  client = Octokit::Client.new(:access_token => app_token)
 
   repo_name = session[:repo_name][:full_name]
   branch_name = session[:jira_issue]
   begin
     # Create branch at tip of master
-    sha = client.ref(repo_name, "heads/master")[:object][:sha]
-    ref = client.create_ref(repo_name, "heads/#{branch_name}", sha.to_s)
+    sha = client.ref(repo_name, "heads/develop")[:object][:sha] # TODO develop
+    type = params.fetch("issueType", 1)
+    if type == 1
+      ref1 = client.create_ref(repo_name, "heads/feature/#{branch_name}", sha.to_s) # TODO fix
+    else
+      ref2 = client.create_ref(repo_name, "heads/fix/#{branch_name}", sha.to_s) # TODO fix
+    end
 
   rescue
     puts "Failed to create branch #{branch_name}"
@@ -246,12 +251,12 @@ def get_jwt
   private_key = OpenSSL::PKey::RSA.new(private_pem)
 
   payload = {
-    # issued at time
-    iat: Time.now.to_i,
-    # JWT expiration time (10 minute maximum)
-    exp: 5.minutes.from_now.to_i,
-    # Integration's GitHub identifier
-    iss: GITHUB_APP_ID
+      # issued at time
+      iat: Time.now.to_i,
+      # JWT expiration time (10 minute maximum)
+      exp: 5.minutes.from_now.to_i,
+      # Integration's GitHub identifier
+      iss: GITHUB_APP_ID
   }
 
   JWT.encode(payload, private_key, "RS256")
@@ -260,11 +265,11 @@ end
 def get_user_installations(access_token)
   url = "https://api.github.com/user/installations"
   headers = {
-    authorization: "token #{access_token}",
-    accept: "application/vnd.github.machine-man-preview+json"
+      authorization: "token #{access_token}",
+      accept: "application/vnd.github.machine-man-preview+json"
   }
 
-  response = RestClient.get(url,headers)
+  response = RestClient.get(url, headers)
   json_response = JSON.parse(response)
 
   installation_id = []
@@ -281,21 +286,21 @@ def get_user_repositories(access_token)
   repository_list = []
   ids = get_user_installations(access_token)
   ids.each do |id|
-    url ="https://api.github.com/user/installations/#{id}/repositories"
+    url = "https://api.github.com/user/installations/#{id}/repositories"
     headers = {
-      authorization: "token #{access_token}",
-      accept: "application/vnd.github.machine-man-preview+json"
+        authorization: "token #{access_token}",
+        accept: "application/vnd.github.machine-man-preview+json"
     }
     begin
-      response = RestClient.get(url,headers)
+      response = RestClient.get(url, headers)
       json_response = JSON.parse(response)
 
       if json_response["total_count"] > 0
         json_response["repositories"].each do |repo|
           repository_list.push({
-            full_name: repo["full_name"],
-            installation_id: id
-          })
+                                   full_name: repo["full_name"],
+                                   installation_id: id
+                               })
         end
       end
     rescue => error
@@ -310,11 +315,11 @@ def get_app_token(installation_id)
   jwt = get_jwt
   return_val = ""
   headers = {
-    authorization: "Bearer #{jwt}",
-    accept: "application/vnd.github.machine-man-preview+json"
+      authorization: "Bearer #{jwt}",
+      accept: "application/vnd.github.machine-man-preview+json"
   }
   begin
-    response = RestClient.post(token_url,{},headers)
+    response = RestClient.post(token_url, {}, headers)
     app_token = JSON.parse(response)
     send_event("plugin", "create", "app_access_token")
     return_val = app_token["token"]

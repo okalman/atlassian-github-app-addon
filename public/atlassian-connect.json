@@ -1,12 +1,12 @@
 {
-   "key": "com.osowskit.jira.github.app",
-   "name": "GitHub App Plugin for JIRA",	
+   "key": "com.thefuntasty.ghplugin",
+   "name": "GitHub App Plugin for JIRA",
    "description": "GitHub Add-on for creating branches",
    "vendor": {
       "name": "T Osowski",
       "url": "https://github.com"
    },
-   "baseUrl": "https://atlassian-github-app-addon.herokuapp.com/",
+   "baseUrl": "https://ancient-mesa-93229.herokuapp.com",
    "authentication": {
       "type": "none"
    },
@@ -14,7 +14,7 @@
       "webPanels": [
          {
             "url": "/main_entry?issueKey={issue.key}",
-            "key": "osowskit-app",
+            "key": "funtasty-gh-plugin",
             "location": "atl.jira.view.issue.right.context",
             "name": {
                "value": "GitHub Development"

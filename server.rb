@@ -170,12 +170,13 @@ get '/create_branch' do
   branch_name = session[:jira_issue]
   begin
     # Create branch at tip of master
-    sha = client.ref(repo_name, "heads/develop")[:object][:sha] # TODO develop
+    sha = client.ref(repo_name, "heads/develop")[:object][:sha]
     type = params.fetch("issueType", 1)
+    puts ["MUJ_TYP",type]
     if type == 1
-      ref1 = client.create_ref(repo_name, "heads/feature/#{branch_name}", sha.to_s) # TODO fix
+      ref1 = client.create_ref(repo_name, "heads/feature/#{branch_name}", sha.to_s)
     else
-      ref2 = client.create_ref(repo_name, "heads/fix/#{branch_name}", sha.to_s) # TODO fix
+      ref2 = client.create_ref(repo_name, "heads/fix/#{branch_name}", sha.to_s)
     end
 
   rescue
